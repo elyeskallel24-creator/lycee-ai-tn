@@ -11,6 +11,7 @@ import * as Icons from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { UserMenu } from '@/components/shared/UserMenu';
 import { OnboardingModal } from '@/components/shared/OnboardingModal';
+import { HelpButton } from '@/components/shared/HelpButton';
 
 const SECTIONS: { label: string; plan: Plan }[] = [
   { label: 'GRATUIT', plan: 'freemium' },
@@ -126,6 +127,7 @@ export const ProtectedLayout = () => {
       </main>
 
       <OnboardingModal />
+      <HelpButton />
 
       {/* Mobile bottom nav */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 glass border-t border-border h-16 flex items-center justify-around px-2">
