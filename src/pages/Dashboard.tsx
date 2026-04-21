@@ -3,17 +3,27 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePlan } from '@/hooks/usePlan';
 import { TOOLS, PLAN_LABELS } from '@/lib/constants';
 import { Link } from 'react-router-dom';
-import { Sparkles, Flame, Timer, Layers, Trophy, ArrowRight } from 'lucide-react';
+import { Sparkles, Flame, Timer, Layers, Trophy } from 'lucide-react';
 import * as Icons from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { CountUp } from '@/components/shared/CountUp';
+import { getRecentTools } from '@/lib/recentTools';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const greetingFor = (h: number) => {
+  if (h >= 5 && h < 12) return { text: 'Bonjour', emoji: '☀️' };
+  if (h >= 12 && h < 18) return { text: 'Bon après-midi', emoji: '🌤️' };
+  if (h >= 18 && h < 24) return { text: 'Bonsoir', emoji: '🌙' };
+  return { text: 'Bonne nuit', emoji: '🌌' };
+};
 
 export default function Dashboard() {
   const { profile } = useAuth();
   const { plan, can } = usePlan();
-  const [stats, setStats] = useState({ pomodoros: 0, dueCards: 0, streak: 0, todayTasks: 0 });
+  const [stats, setStats] = useState<{ pomodoros: number; dueCards: number; streak: number; todayTasks: number } | null>(null);
+  const [recents] = useState(() => getRecentTools());
 
   useEffect(() => {
     if (!profile) return;
@@ -25,15 +35,11 @@ export default function Dashboard() {
         supabase.from('activity_log').select('activity_date').eq('user_id', profile.id).order('activity_date', { ascending: false }).limit(60),
         supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('user_id', profile.id).eq('is_daily_goal', true).eq('daily_reset_date', today),
       ]);
-      // streak
       let streak = 0;
       if (activities && activities.length) {
         const dates = new Set(activities.map(a => a.activity_date));
         const cur = new Date();
-        while (dates.has(cur.toISOString().slice(0, 10))) {
-          streak++;
-          cur.setDate(cur.getDate() - 1);
-        }
+        while (dates.has(cur.toISOString().slice(0, 10))) { streak++; cur.setDate(cur.getDate() - 1); }
       }
       setStats({ pomodoros: pomodoros ?? 0, dueCards: dueCards ?? 0, streak, todayTasks: todayTasks ?? 0 });
     })();
@@ -42,55 +48,68 @@ export default function Dashboard() {
   const firstName = profile?.full_name?.split(' ')[0] || profile?.username || 'étudiant';
   const allowedTools = TOOLS.filter(t => can(t.plan));
   const lockedTools = TOOLS.filter(t => !can(t.plan));
+  const greeting = greetingFor(new Date().getHours());
+
+  const statCards = [
+    { label: 'Pomodoros', value: stats?.pomodoros ?? 0, icon: Timer, color: 'from-coral to-pink-500', suffix: '' as const },
+    { label: 'Cartes dues', value: stats?.dueCards ?? 0, link: '/tools/flashcards', icon: Layers, color: 'from-cyan-500 to-blue-600', suffix: '' as const },
+    { label: 'Série', value: stats?.streak ?? 0, icon: Flame, color: 'from-orange-500 to-red-600', suffix: 'j' as const },
+    { label: 'My Day', value: stats?.todayTasks ?? 0, icon: Trophy, color: 'from-amber-500 to-yellow-600', suffix: '' as const },
+  ];
 
   return (
     <div className="container py-8 md:py-12">
-      {/* Welcome */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <div className="text-sm text-accent font-mono">{new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
-            <h1 className="font-display text-3xl md:text-5xl font-bold">
-              Salut <span className="gradient-text">{firstName}</span> 👋
-            </h1>
+            <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1, duration: 0.5 }} className="font-display text-3xl md:text-5xl font-bold">
+              {greeting.text}, <span className="gradient-text">{firstName}</span> {greeting.emoji}
+            </motion.h1>
             {profile?.level && <div className="text-muted-foreground mt-1">{profile.level}</div>}
           </div>
           <div className={cn('inline-flex items-center gap-2 px-4 py-2 rounded-full glass border-primary/30', plan === 'premium' && 'glow-primary')}>
             <Sparkles className="h-4 w-4 text-accent" />
             <span className="font-semibold">{PLAN_LABELS[plan]}</span>
-            {plan !== 'premium' && (
-              <Link to="/pricing" className="text-xs text-primary underline ml-2">Upgrade</Link>
-            )}
+            {plan !== 'premium' && <Link to="/pricing" className="text-xs text-primary underline ml-2">Upgrade</Link>}
           </div>
         </div>
       </motion.div>
 
-      {/* Bento stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Pomodoros', value: stats.pomodoros, icon: Timer, color: 'from-coral to-pink-500' },
-          { label: 'Cartes dues', value: stats.dueCards, icon: Layers, color: 'from-cyan-500 to-blue-600' },
-          { label: 'Série', value: `${stats.streak}j`, icon: Flame, color: 'from-orange-500 to-red-600' },
-          { label: 'My Day', value: stats.todayTasks, icon: Trophy, color: 'from-amber-500 to-yellow-600' },
-        ].map((s, i) => (
-          <motion.div
-            key={s.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            className="bento-card relative overflow-hidden"
-          >
-            <div className={cn('absolute inset-0 bg-gradient-to-br opacity-20', s.color)} />
-            <div className="relative">
-              <s.icon className="h-5 w-5 text-foreground/70 mb-2" />
-              <div className="font-mono text-3xl font-bold">{s.value}</div>
-              <div className="text-xs text-muted-foreground">{s.label}</div>
-            </div>
-          </motion.div>
-        ))}
+        {statCards.map((s, i) => {
+          const Inner = (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="bento-card relative overflow-hidden h-full">
+              <div className={cn('absolute inset-0 bg-gradient-to-br opacity-20', s.color)} />
+              <div className="relative">
+                <s.icon className="h-5 w-5 text-foreground/70 mb-2" />
+                {stats === null ? <Skeleton className="h-9 w-16 mb-1" /> : (
+                  <div className="font-mono text-3xl font-bold"><CountUp value={s.value} />{s.suffix}</div>
+                )}
+                <div className="text-xs text-muted-foreground">{s.label}</div>
+              </div>
+            </motion.div>
+          );
+          return s.link ? <Link key={s.label} to={s.link}>{Inner}</Link> : <div key={s.label}>{Inner}</div>;
+        })}
       </div>
 
-      {/* Tools grid */}
+      {recents.length > 0 && (
+        <div className="mb-8">
+          <h2 className="font-display text-lg font-semibold mb-3 text-muted-foreground">Outils récents</h2>
+          <div className="flex flex-wrap gap-2">
+            {recents.map(r => {
+              const Icon = (Icons as any)[r.icon] || Icons.Square;
+              return (
+                <Link key={r.key} to={r.path} className="glass rounded-full px-4 py-2 text-sm flex items-center gap-2 hover:border-primary/50 transition-all">
+                  <Icon className="h-4 w-4 text-primary" /> {r.name}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="mb-8">
         <h2 className="font-display text-2xl font-bold mb-4">Tes outils</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -114,7 +133,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Locked / upgrade */}
       {lockedTools.length > 0 && (
         <div>
           <h2 className="font-display text-2xl font-bold mb-4">Débloque plus</h2>

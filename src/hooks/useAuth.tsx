@@ -13,6 +13,7 @@ export interface Profile {
   gender: string | null;
   school_level: string | null;
   date_of_birth: string | null;
+  created_at: string;
 }
 
 interface AuthCtx {
