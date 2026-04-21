@@ -34,9 +34,10 @@ export default function FuelLog() {
 
   const toggle = async (key: keyof Log) => {
     if (!log || !user) return;
-    const next = { ...log, [key]: !log[key] };
+    const newVal = !log[key];
+    const next = { ...log, [key]: newVal } as Log;
     setLog(next);
-    await supabase.from('fuel_log').update({ [key]: next[key] }).eq('id', log.id!);
+    await supabase.from('fuel_log').update({ [key]: newVal } as any).eq('id', log.id!);
   };
 
   if (!log) return <PageShell title="Carnet d'énergie"><div /></PageShell>;
