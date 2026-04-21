@@ -28,7 +28,7 @@ const signUpSchema = z.object({
   email: z.string().email('Email invalide').max(255),
   password: z.string().min(8, 'Au moins 8 caractères').max(72),
   date_of_birth: z.string().min(1, 'Requis'),
-  gender: z.enum(['male', 'female'], { required_error: 'Choisis une option' }),
+  gender: z.string().min(1, 'Choisis une option'),
   school_level: z.string().min(1, 'Requis'),
   terms: z.boolean().refine(v => v === true, 'Tu dois accepter les conditions'),
 });
