@@ -19,7 +19,23 @@ const Ressources = lazy(() => import("./pages/Ressources"));
 const Pomodoro = lazy(() => import("./pages/tools/Pomodoro"));
 const Planner = lazy(() => import("./pages/tools/Planner"));
 const Admin = lazy(() => import("./pages/Admin"));
-const ToolPlaceholder = lazy(() => import("./pages/tools/ToolPlaceholder"));
+
+const Flashcards = lazy(() => import("./pages/tools/Flashcards"));
+const Notes = lazy(() => import("./pages/tools/Notes"));
+const Bookmarks = lazy(() => import("./pages/tools/Bookmarks"));
+const MyDay = lazy(() => import("./pages/tools/MyDay"));
+const Kanban = lazy(() => import("./pages/tools/Kanban"));
+const Annotator = lazy(() => import("./pages/tools/Annotator"));
+
+const Chat = lazy(() => import("./pages/tools/Chat"));
+const Tracker = lazy(() => import("./pages/tools/Tracker"));
+const ExamCountdown = lazy(() => import("./pages/tools/ExamCountdown"));
+const KnowledgeMap = lazy(() => import("./pages/tools/KnowledgeMap"));
+const SrsSchedule = lazy(() => import("./pages/tools/SrsSchedule"));
+const Streak = lazy(() => import("./pages/tools/Streak"));
+const Folders = lazy(() => import("./pages/tools/Folders"));
+const Stretch = lazy(() => import("./pages/tools/Stretch"));
+const FuelLog = lazy(() => import("./pages/tools/FuelLog"));
 
 const queryClient = new QueryClient();
 
@@ -29,10 +45,8 @@ const Loading = () => (
   </div>
 );
 
-const lazyTool = (name: string, plan: 'lite' | 'premium') => (
-  <PlanGate required={plan} toolName={name}>
-    <ToolPlaceholder name={name} />
-  </PlanGate>
+const gated = (plan: 'lite' | 'premium', name: string, node: React.ReactNode) => (
+  <PlanGate required={plan} toolName={name}>{node}</PlanGate>
 );
 
 const App = () => (
@@ -55,24 +69,23 @@ const App = () => (
                 <Route path="/tools/planner" element={<Planner />} />
                 <Route path="/tools/pomodoro" element={<Pomodoro />} />
 
-                {/* Lite tools */}
-                <Route path="/tools/flashcards" element={lazyTool('Flashcards SRS', 'lite')} />
-                <Route path="/tools/notes" element={lazyTool('Notes Markdown', 'lite')} />
-                <Route path="/tools/bookmarks" element={lazyTool('Marque-pages', 'lite')} />
-                <Route path="/tools/myday" element={lazyTool('My Day', 'lite')} />
-                <Route path="/tools/kanban" element={lazyTool('Kanban', 'lite')} />
-                <Route path="/tools/annotator" element={lazyTool('Annotateur PDF', 'lite')} />
+                <Route path="/tools/flashcards" element={gated('lite', 'Flashcards SRS', <Flashcards />)} />
+                <Route path="/tools/flashcards/:deckId" element={gated('lite', 'Flashcards SRS', <Flashcards />)} />
+                <Route path="/tools/notes" element={gated('lite', 'Notes', <Notes />)} />
+                <Route path="/tools/bookmarks" element={gated('lite', 'Marque-pages', <Bookmarks />)} />
+                <Route path="/tools/myday" element={gated('lite', 'My Day', <MyDay />)} />
+                <Route path="/tools/kanban" element={gated('lite', 'Kanban', <Kanban />)} />
+                <Route path="/tools/annotator" element={gated('lite', 'Annotateur PDF', <Annotator />)} />
 
-                {/* Premium tools */}
-                <Route path="/tools/chat" element={lazyTool('Salle d\'étude', 'premium')} />
-                <Route path="/tools/tracker" element={lazyTool('Tracker d\'heures', 'premium')} />
-                <Route path="/tools/exam-countdown" element={lazyTool('Compte à rebours', 'premium')} />
-                <Route path="/tools/knowledge-map" element={lazyTool('Carte de connaissances', 'premium')} />
-                <Route path="/tools/srs-schedule" element={lazyTool('Planning SRS', 'premium')} />
-                <Route path="/tools/streak" element={lazyTool('Calendrier de séries', 'premium')} />
-                <Route path="/tools/folders" element={lazyTool('Dossiers couleurs', 'premium')} />
-                <Route path="/tools/stretch" element={lazyTool('Étirements', 'premium')} />
-                <Route path="/tools/fuel-log" element={lazyTool('Carnet d\'énergie', 'premium')} />
+                <Route path="/tools/chat" element={gated('premium', "Salle d'étude", <Chat />)} />
+                <Route path="/tools/tracker" element={gated('premium', "Tracker d'heures", <Tracker />)} />
+                <Route path="/tools/exam-countdown" element={gated('premium', 'Compte à rebours', <ExamCountdown />)} />
+                <Route path="/tools/knowledge-map" element={gated('premium', 'Carte de connaissances', <KnowledgeMap />)} />
+                <Route path="/tools/srs-schedule" element={gated('premium', 'Planning SRS', <SrsSchedule />)} />
+                <Route path="/tools/streak" element={gated('premium', 'Calendrier de séries', <Streak />)} />
+                <Route path="/tools/folders" element={gated('premium', 'Dossiers couleurs', <Folders />)} />
+                <Route path="/tools/stretch" element={gated('premium', 'Étirements', <Stretch />)} />
+                <Route path="/tools/fuel-log" element={gated('premium', "Carnet d'énergie", <FuelLog />)} />
               </Route>
 
               <Route path="*" element={<NotFound />} />
