@@ -258,7 +258,10 @@ export default function Auth() {
                   onCheckedChange={(c) => signUpForm.setValue('terms', !!c, { shouldValidate: true })}
                 />
                 <label htmlFor="terms" className="text-xs text-muted-foreground leading-tight">
-                  J'accepte les conditions d'utilisation et la politique de confidentialité.
+                  J'accepte les{' '}
+                  <Link to="/terms" target="_blank" className="text-primary hover:underline">conditions d'utilisation</Link>
+                  {' '}et la{' '}
+                  <Link to="/privacy" target="_blank" className="text-primary hover:underline">politique de confidentialité</Link>.
                 </label>
               </div>
               {signUpForm.formState.errors.terms && <p className="text-xs text-destructive">{signUpForm.formState.errors.terms.message}</p>}
