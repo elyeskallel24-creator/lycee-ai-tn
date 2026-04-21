@@ -301,9 +301,12 @@ export default function Landing() {
         <div className="container flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <Logo size="sm" />
           <div>© 2026 LyceeAI — Fait avec 💜 pour les lycéens tunisiens</div>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4 justify-center">
             <Link to="/pricing" className="hover:text-primary">Tarifs</Link>
             <Link to="/auth" className="hover:text-primary">Connexion</Link>
+            <Link to="/contact" className="hover:text-primary">Contact / Support</Link>
+            <Link to="/privacy" className="hover:text-primary">Confidentialité</Link>
+            <Link to="/terms" className="hover:text-primary">Conditions</Link>
           </div>
         </div>
       </footer>
