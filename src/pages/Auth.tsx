@@ -100,7 +100,7 @@ export default function Auth() {
   const onSignUp = async (d: SignUpData) => {
     if (usernameStatus === 'taken') { toast.error('Ce nom d\'utilisateur est déjà pris'); return; }
     setSubmitting(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: d.email,
       password: d.password,
       options: {
@@ -114,12 +114,23 @@ export default function Auth() {
         },
       },
     });
-    setSubmitting(false);
     if (error) {
+      setSubmitting(false);
       if (error.message.toLowerCase().includes('already')) toast.error('Cet email est déjà utilisé');
       else toast.error(error.message);
       return;
     }
+    // If auto-confirm is on, a session is returned; otherwise sign in manually.
+    if (!data.session) {
+      const { error: signInErr } = await supabase.auth.signInWithPassword({ email: d.email, password: d.password });
+      if (signInErr) {
+        setSubmitting(false);
+        toast.error('Compte créé, mais connexion impossible. Réessaie de te connecter.');
+        setMode('signin');
+        return;
+      }
+    }
+    setSubmitting(false);
     toast.success('Compte créé ! Bienvenue 🎉');
     navigate('/dashboard');
   };
